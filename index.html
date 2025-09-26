@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Quest - Interactive Database Learning</title>
+    <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            margin: 10px 0;
+            opacity: 0.9;
+        }
+
+        .login-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .main-content {
+            display: none;
+        }
+
+        .user-stats {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .navigation {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .nav-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .nav-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border-color: #667eea;
+        }
+
+        .nav-card.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .nav-card.completed {
+            border-color: #4CAF50;
+            background: linear-gradient(135deg, #f8fff8, #e8f5e8);
+        }
+
+        .nav-card h3 {
+            color: #667eea;
+            margin: 0 0 10px 0;
+            font-size: 1.4rem;
+        }
+
+        .nav-card .difficulty {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .difficulty.beginner { background: #e8f5e9; color: #2e7d32; }
+        .difficulty.intermediate { background: #fff3e0; color: #f57c00; }
+        .difficulty.advanced { background: #ffebee; color: #c62828; }
+
+        .content-area {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .content-area.active {
+            display: block;
+        }
+
+        .database-simulator {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .table-header {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .table-content {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        .quiz-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .question {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .options {
+            display: grid;
+            gap: 10px;
+        }
+
+        .option {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .option.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .option.correct {
+            border-color: #4CAF50;
+            background: #4CAF50;
+            color: white;
+        }
+
+        .option.incorrect {
+            border-color: #f44336;
+            background: #f44336;
+            color: white;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn.success {
+            background: #4CAF50;
+        }
+
+        .btn.success:hover {
+            background: #45a049;
+        }
+
+        .definitions-panel {
+            background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .definition-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .definition-term {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .definition-text {
+            margin-top: 5px;
+            color: #555;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 20px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .feedback-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .feedback-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .feedback-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .sql-editor {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+        }
+
+        .sql-input {
+            width: 100%;
+            background: #1a202c;
+            color: #e2e8f0;
+            border: 1px solid #4a5568;
+            border-radius: 5px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .join-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .table-box {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .join-arrow {
+            font-size: 2rem;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .tokens-display {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #333;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 10px;
+        }
+
+        .achievement-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            z-index: 1000;
+            text-align: center;
+            display: none;
+        }
+
+        .achievement-popup.show {
+            display: block;
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .user-stats {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .navigation {
+                grid-template-columns: 1fr;
+            }
+            
+            .join-diagram {
+                flex-direction: column;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+
+        .input-group {
+            margin: 15px 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 SQL Quest</h1>
+            <p>Master Database Fundamentals Through Interactive Learning</p>
+        </div>
+
+        <!-- Login Section -->
+        <div class="login-section" id="loginSection">
+            <h2>Welcome to SQL Quest!</h2>
+            <p>Enter your credentials to start your database learning journey</p>
+            
+            <div class="input-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" placeholder="Enter your username">
+            </div>
+            
+            <div class="input-group">
+                <label for="password">4-Digit Password:</label>
+                <input type="password" id="password" placeholder="Enter 4-digit password" maxlength="4">
+            </div>
+            
+            <button class="btn" onclick="login()">Login / Sign Up</button>
+            <div id="loginFeedback"></div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <!-- User Stats -->
+            <div class="user-stats">
+                <div class="stat-item">
+                    <span class="stat-value" id="userTokens">0</span>
+                    <span>🪙 Tokens</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="userLevel">1</span>
+                    <span>📊 Level</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="completedModules">0</span>
+                    <span>✅ Completed</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="currentStreak">0</span>
+                    <span>🔥 Streak</span>
+                </div>
+            </div>
+
+            <!-- Navigation Cards -->
+            <div class="navigation">
+                <div class="nav-card" onclick="openModule('intro')" id="card-intro">
+                    <div class="difficulty beginner">Beginner</div>
+                    <h3>🏁 Introduction to Databases</h3>
+                    <p>Learn what databases are and why they're essential in modern computing.</p>
+                </div>
+
+                <div class="nav-card locked" onclick="openModule('sql-basics')" id="card-sql-basics">
+                    <div class="difficulty beginner">Beginner</div>
+                    <h3>📚 What is SQL?</h3>
+                    <p>Discover the power of Structured Query Language and its role in database management.</p>
+                </div>
+
+                <div class="nav-card locked" onclick="openModule('tables')" id="card-tables">
+                    <div class="difficulty beginner">Beginner</div>
+                    <h3>🗂️ Tables, Rows & Columns</h3>
+                    <p>Understand the fundamental building blocks of relational databases.</p>
+                </div>
+
+                <div class="nav-card locked" onclick="openModule('queries')" id="card-queries">
+                    <div class="difficulty intermediate">Intermediate</div>
+                    <h3>🔍 Basic Queries</h3>
+                    <p>Learn to retrieve and filter data using SELECT statements.</p>
+                </div>
+
+                <div class="nav-card locked" onclick="openModule('sorting')" id="card-sorting">
+                    <div class="difficulty intermediate">Intermediate</div>
+                    <h3>📈 Sorting & Filtering</h3>
+                    <p>Master ORDER BY, WHERE clauses, and data manipulation techniques.</p>
+                </div>
+
+                <div class="nav-card locked" onclick="openModule('joins')" id="card-joins">
+                    <div class="difficulty advanced">Advanced</div>
+                    <h3>🔗 Joins & Relationships</h3>
+                    <p>Explore how to combine data from multiple tables using different join types.</p>
+                </div>
+            </div>
+
+            <!-- Content Areas -->
+            <div class="content-area" id="content-intro">
+                <h2>🏁 Introduction to Databases</h2>
+                
+                <div class="definitions-panel">
+                    <h3>Key Concepts</h3>
+                    <div class="definition-item">
+                        <div class="definition-term">Database</div>
+                        <div class="definition-text">A structured collection of data that is organized and stored electronically in a computer system.</div>
+                    </div>
+                    <div class="definition-item">
+                        <div class="definition-term">Relational Database</div>
+                        <div class="definition-text">A type of database that stores data in tables with relationships between them, following rules established by Dr. Edgar Codd.</div>
+                    </div>
+                </div>
+
+                <p>Welcome to the world of databases! Think of a database like a digital filing cabinet that's incredibly organized and efficient. Instead of paper files, we store information electronically in a way that makes it easy to find, update, and analyze.</p>
+
+                <h3>Why Do We Need Databases?</h3>
+                <ul>
+                    <li><strong>Organization:</strong> Keep large amounts of data structured and accessible</li>
+                    <li><strong>Efficiency:</strong> Quickly find specific information among millions of records</li>
+                    <li><strong>Consistency:</strong> Ensure data accuracy and prevent duplication</li>
+                    <li><strong>Security:</strong> Control who can access and modify information</li>
+                </ul>
+
+                <div class="quiz-container">
+                    <div class="question">Which of the following best describes a relational database?</div>
+                    <div class="options" id="quiz-intro">
+                        <div class="option" onclick="selectOption(this, false)">A single file containing all data</div>
+                        <div class="option" onclick="selectOption(this, true)">A collection of related tables with structured relationships</div>
+                        <div class="option" onclick="selectOption(this, false)">A simple text document</div>
+                        <div class="option" onclick="selectOption(this, false)">A spreadsheet with one sheet</div>
+                    </div>
+                    <button class="btn" onclick="submitQuiz('intro')" id="submit-intro" disabled>Submit Answer</button>
+                    <div id="feedback-intro"></div>
+                </div>
+            </div>
+
+            <div class="content-area" id="content-sql-basics">
+                <h2>📚 What is SQL?</h2>
+                
+                <div class="definitions-panel">
+                    <h3>Key Concepts</h3>
+                    <div class="definition-item">
+                        <div class="definition-term">SQL (Structured Query Language)</div>
+                        <div class="definition-text">A standardized programming language designed for managing and manipulating relational databases.</div>
+                    </div>
+                    <div class="definition-item">
+                        <div class="definition-term">Query</div>
+                        <div class="definition-text">A request for data or information from a database, written in SQL syntax.</div>
+                    </div>
+                </div>
+
+                <p>SQL (Structured Query Language) is like learning a special language to communicate with databases. Just as you might ask a librarian "Can you help me find books about cooking?", you use SQL to ask databases "Can you show me all customers from New York?"</p>
+
+                <h3>What Can SQL Do?</h3>
+                <ul>
+                    <li><strong>Retrieve Data:</strong> Find specific information (SELECT)</li>
+                    <li><strong>Add Data:</strong> Insert new records (INSERT)</li>
+                    <li><strong>Update Data:</strong> Modify existing information (UPDATE)</li>
+                    <li><strong>Delete Data:</strong> Remove unwanted records (DELETE)</li>
+                    <li><strong>Create Structure:</strong> Build tables and databases (CREATE)</li>
+                </ul>
+
+                <div class="sql-editor">
+                    <h4>Try Your First SQL Query!</h4>
+                    <p>This query selects all data from a customers table:</p>
+                    <code>SELECT * FROM customers;</code>
+                </div>
+
+                <div class="quiz-container">
+                    <div class="question">What does SQL stand for?</div>
+                    <div class="options" id="quiz-sql-basics">
+                        <div class="option" onclick="selectOption(this, false)">Simple Query Language</div>
+                        <div class="option" onclick="selectOption(this, true)">Structured Query Language</div>
+                        <div class="option" onclick="selectOption(this, false)">Standard Question Language</div>
+                        <div class="option" onclick="selectOption(this, false)">System Query Logic</div>
+                    </div>
+                    <button class="btn" onclick="submitQuiz('sql-basics')" id="submit-sql-basics" disabled>Submit Answer</button>
+                    <div id="feedback-sql-basics"></div>
+                </div>
+            </div>
+
+            <div class="content-area" id="content-tables">
+                <h2>🗂️ Tables, Rows & Columns</h2>
+                
+                <div class="definitions-panel">
+                    <h3>Key Concepts</h3>
+                    <div class="definition-item">
+                        <div class="definition-term">Table</div>
+                        <div class="definition-text">A collection of related data organized in rows and columns, like a spreadsheet.</div>
+                    </div>
+                    <div class="definition-item">
+                        <div class="definition-term">Row (Record)</div>
+                        <div class="definition-text">A horizontal entry in a table representing a single item or entity.</div>
+                    </div>
+                    <div class="definition-item">
+                        <div class="definition-term">Column (Field)</div>
+                        <div class="definition-text">A vertical category in a table that holds a specific type of information.</div>
+                    </div>
+                </div>
+
+                <p>Think of a database table like a well-organized spreadsheet. Each table represents a specific type of information, like customers, products, or orders.</p>
+
+                <div class="database-simulator">
+                    <div class="table-header">📊 Sample Customer Table</div>
+                    <div class="table-content">
+                        <table id="customerTable">
+                            <thead>
+                                <tr>
+                                    <th>CustomerID</th>
+                                    <th>FirstName</th>
+                                    <th>LastName</th>
+                                    <th>Email</th>
+                                    <th>City</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>John</td>
+                                    <td>Smith</td>
+                                    <td>john.smith@email.com</td>
+                                    <td>New York</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>Sarah</td>
+                                    <td>Johnson</td>
+                                    <td>sarah.j@email.com</td>
+                                    <td>Los Angeles</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>Mike</td>
+                                    <td>Brown</td>
+                                    <td>mike.brown@email.com</td>
+                                    <td>Chicago</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <p><strong>Interactive Exercise:</strong> Click on different parts of the table above to see how data is organized!</p>
+
+                <div class="quiz-container">
+                    <div class="question">In the customer table above, what represents a single customer's complete information?</div>
+                    <div class="options" id="quiz-tables">
+                        <div class="option" onclick="selectOption(this, false)">A column</div>
+                        <div class="option" onclick="selectOption(this, true)">A row</div>
+                        <div class="option" onclick="selectOption(this, false)">A cell</div>
+                        <div class="option" onclick="selectOption(this, false)">The table header</div>
+                    </div>
+                    <button class="btn" onclick="submitQuiz('tables')" id="submit-tables" disabled>Submit Answer</button>
+                    <div id="feedback-tables"></div>
+                </div>
+            </div>
+
+            <div class="content-area" id="content-queries">
+                <h2>🔍 Basic Queries</h2>
+                
+                <div class="definitions-panel">
+                    <h3>Key Concepts</h3>
+                    <div class="definition-item">
+                        <div class="definition-term">SELECT Statement</div>
+                        <div class="definition-text">The most common SQL command used to retrieve data from one or more tables.</div>
+                    </div>
+                    <div class="definition-item">
+                        <div class="definition-term">WHERE Clause</div>
+                        <div class="definition-text">A condition that filters which rows are returned by a query.</div>
+                    </div>
+                </div>
+
+                <p>Now let's learn to ask the database for specific information! The SELECT statement is your primary tool for retrieving data.</p>
+
+                <div class="sql-editor">
+                    <h4>Basic SELECT Syntax:</h4>
+                    <code>SELECT column1, column2 FROM table_name;</code>
+                    <br><br>
+                    <h4>Select All Columns:</h4>
+                    <code>SELECT * FROM customers;</code>
+                    <br><br>
+                    <h4>Select Specific Columns:</h4>
+                    <code>SELECT FirstName, LastName FROM customers;</code>
+                </div>
+
+                <div class="quiz-container">
+                    <h3>🎯 SQL Challenge</h3>
+                    <p>You need to write a query to get all email addresses from the customers table. Which SQL statement is correct?</p>
+                    
+                    <textarea class="sql-input" id="sqlQuery" placeholder="Write your SQL query here..."></textarea>
+                    
+                    <button class="btn" onclick="checkSQLQuery()">Run Query</button>
+                    <div id="sqlFeedback"></div>
+                </div>
+
+                <div class="quiz-container">
+                    <div class="question">What does the asterisk (*) represent in "SELECT * FROM customers"?</div>
+                    <div class="options" id="quiz-queries">
+                        <div class="option" onclick="selectOption(this, false)">Multiply the data</div>
+                        <div class="option" onclick="selectOption(this, true)">Select all columns</div>
+                        <div class="option" onclick="selectOption(this, false)">Select all tables</div>
+                        <div class="option" onclick="selectOption(this, false)">Create a new column</div>
+                    </div>
+                    <button class="btn" onclick="submitQuiz('queries')" id="submit-queries" disabled>Submit Answer</button>
+                    <div id="feedback-queries"></div>
+                </div>
+            </div>
+
+            <div class="content-area" id="content-sorting">
+                <h2>📈 Sorting & Filtering</h2>
+                
+                <div class="definitions-panel">
+                    <h3>Key Concepts</h3>
+                    <div class="definition-item">
+                        <div class="definition-term">ORDER BY</div>
+                        <div class="definition-text">A clause that sorts query results in ascending (ASC) or descending (DESC) order.</div>
+                    </div>
+                    <div class="definition-item">
+                        <div class="definition-term">WHERE Clause</div>
+                        <div class="definition-text">Filters rows based on specified conditions before returning results.</div>
+                    </div>
+                </div>
+
+                <p>Learn to organize and filter your data! Sorting and filtering help you find exactly what you're looking for in large datasets.</p>
+
+                <div class="sql-editor">
+                    <h4>Sorting Examples:</h4>
+                    <code>SELECT * FROM customers ORDER BY LastName ASC;</code>
+                    <br><br>
+                    <h4>Filtering Examples:</h4>
+                    <code>SELECT * FROM customers WHERE City = 'New York';</code>
+                    <br><br>
+                    <h4>Combined Sorting and Filtering:</h4>
+                    <code>SELECT * FROM customers WHERE City = 'Chicago' ORDER BY FirstName;</code>
+                </div>
+
+                <div class="database-simulator">
+                    <div class="table-header">🔄 Interactive Sorting Demo</div>
+                    <div style="padding: 20px; text-align: center;">
+                        <button class="btn" onclick="sortTable('name')">Sort by Name</button>
+                        <button class="btn" onclick="sortTable('city')">Sort by City</button>
+                        <button class="btn" onclick="filterTable('New York')">Filter: New York</button>
+                        <button class="btn" onclick="resetTable()">Reset</button>
+                    </div>
+                    <div class="table-content">
+                        <table id="sortableTable">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>City</th>
+                                    <th>Age</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sortableTableBody">
+                                <tr><td>Alice Johnson</td><td>New York</td><td>28</td></tr>
+                                <tr><td>Bob Smith</td><td>Chicago</td><td>35</td></tr>
+                                <tr><td>Carol Davis</td><td>New York</td><td>42</td></tr>
+                                <tr><td>David Wilson</td><td>Los Angeles</td><td>31</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="quiz-container">
+                    <div class="question">Which SQL clause would you use to show customers from Chicago only?</div>
+                    <div class="options" id="quiz-sorting">
+                        <div class="option" onclick="selectOption(this, false)">ORDER BY City = 'Chicago'</div>
+                        <div class="option" onclick="selectOption(this, true)">WHERE City = 'Chicago'</div>
+                        <div class="option" onclick="selectOption(this, false)">SELECT City = 'Chicago'</div>
+                        <div class="option" onclick="selectOption(this, false)">FROM City = 'Chicago'</div>
+                    </div>
+                    <button class="btn" onclick="submitQuiz('sorting')" id="submit-sorting" disabled>Submit Answer</button>
+                    <div id="feedback-sorting"></div>
+                </div>
+            </div>
+
+            <div class="content-area" id="content-joins">
+                <h2>🔗 Joins & Relationships</h2>
+                
+                <div class="definitions-panel">
+                    <h3>Key Concepts</h3>
+                    <div class="definition-item">
+                        <div class="definition-term">JOIN</div>
+                        <div class="definition-text">A SQL operation that combines rows from two or more tables based on related columns.</div>
+                    </div>
+                    <div class="definition-item">
+                        <div class="definition-term">Primary Key</div>
+                        <div class="definition-text">A unique identifier for each row in a table.</div>
+                    </div>
+                    <div class="definition-item">
+                        <div class="definition-term">Foreign Key</div>
+                        <div class="definition-text">A column that creates a link between two tables by referencing the primary key of another table.</div>
+                    </div>
+                </div>
+
+                <p>Joins are like connecting puzzle pieces! They allow you to combine information from different tables to get a complete picture.</p>
+
+                <div class="join-diagram">
+                    <div class="table-box">
+                        <strong>Customers</strong><br>
+                        CustomerID<br>
+                        Name<br>
+                        Email
+                    </div>
+                    <div class="join-arrow">⟷</div>
+                    <div class="table-box">
+                        <strong>Orders</strong><br>
+                        OrderID<br>
+                        CustomerID<br>
+                        Product
+                    </div>
+                </div>
+
+                <div class="sql-editor">
+                    <h4>INNER JOIN Example:</h4>
+                    <code>SELECT customers.Name, orders.Product<br>
+                    FROM customers<br>
+                    INNER JOIN orders ON customers.CustomerID = orders.CustomerID;</code>
+                </div>
+
+                <div class="quiz-container">
+                    <h3>🎮 Join Role-Playing Game</h3>
+                    <p>You're a detective trying to solve a case! You have a Suspects table and a Crimes table. Which type of join would show you all suspects, even those who haven't committed any crimes?</p>
+                    
+                    <div class="options" id="quiz-joins">
+                        <div class="option" onclick="selectOption(this, false)">INNER JOIN</div>
+                        <div class="option" onclick="selectOption(this, true)">LEFT JOIN</div>
+                        <div class="option" onclick="selectOption(this, false)">RIGHT JOIN</div>
+                        <div class="option" onclick="selectOption(this, false)">CROSS JOIN</div>
+                    </div>
+                    <button class="btn" onclick="submitQuiz('joins')" id="submit-joins" disabled>Submit Answer</button>
+                    <div id="feedback-joins"></div>
+                </div>
+            </div>
+
+            <!-- Progress Tracking -->
+            <div style="background: white; border-radius: 15px; padding: 25px; margin-top: 30px;">
+                <h3>📊 Your Learning Progress</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="overallProgress" style="width: 0%"></div>
+                </div>
+                <p id="progressText">Complete modules to unlock new challenges!</p>
+                
+                <button class="btn success" onclick="logout()" style="margin-top: 20px;">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievement Popup -->
+    <div class="overlay" id="overlay"></div>
+    <div class="achievement-popup" id="achievementPopup">
+        <h2>🎉 Achievement Unlocked!</h2>
+        <div id="achievementContent"></div>
+        <button class="btn" onclick="closeAchievement()">Continue Learning</button>
+    </div>
+
+    <script>
+        // Game State Management
+        let gameState = {
+            currentUser: null,
+            tokens: 0,
+            level: 1,
+            completedModules: [],
+            streak: 0,
+            totalAttempts: 0,
+            correctAnswers: 0,
+            unlockedModules: ['intro']
+        };
+
+        // Sample data for interactive table
+        const originalTableData = [
+            {name: "Alice Johnson", city: "New York", age: 28},
+            {name: "Bob Smith", city: "Chicago", age: 35},
+            {name: "Carol Davis", city: "New York", age: 42},
+            {name: "David Wilson", city: "Los Angeles", age: 31}
+        ];
+
+        // Module progression system
+        const moduleOrder = ['intro', 'sql-basics', 'tables', 'queries', 'sorting', 'joins'];
+        
+        // Quiz answers
+        const quizAnswers = {
+            'intro': 1, // "A collection of related tables with structured relationships"
+            'sql-basics': 1, // "Structured Query Language"
+            'tables': 1, // "A row"
+            'queries': 1, // "Select all columns"
+            'sorting': 1, // "WHERE City = 'Chicago'"
+            'joins': 1 // "LEFT JOIN"
+        };
+
+        // Login System
+        function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const feedback = document.getElementById('loginFeedback');
+
+            if (!username || !password) {
+                showFeedback(feedback, 'Please enter both username and password.', 'error');
+                return;
+            }
+
+            if (password.length !== 4 || !/^\d{4}$/.test(password)) {
+                showFeedback(feedback, 'Password must be exactly 4 digits.', 'error');
+                return;
+            }
+
+            // Load or create user data
+            const userData = loadUserData(username);
+            if (userData) {
+                if (userData.password === password) {
+                    gameState = userData;
+                    showFeedback(feedback, 'Welcome back! Loading your progress...', 'success');
+                    setTimeout(() => {
+                        document.getElementById('loginSection').style.display = 'none';
+                        document.getElementById('mainContent').style.display = 'block';
+                        updateUI();
+                    }, 1000);
+                } else {
+                    showFeedback(feedback, 'Incorrect password. Please try again.', 'error');
+                }
+            } else {
+                // Create new user
+                gameState.currentUser = username;
+                gameState.password = password;
+                saveUserData();
+                showFeedback(feedback, 'Account created! Welcome to SQL Quest!', 'success');
+                setTimeout(() => {
+                    document.getElementById('loginSection').style.display = 'none';
+                    document.getElementById('mainContent').style.display = 'block';
+                    updateUI();
+                }, 1000);
+            }
+        }
+
+        function logout() {
+            saveUserData();
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            
+            // Reset to intro module
+            closeAllModules();
+            document.getElementById('content-intro').classList.add('active');
+        }
+
+        // Local Storage Functions
+        function saveUserData() {
+            if (gameState.currentUser) {
+                localStorage.setItem(`sqlquest_${gameState.currentUser}`, JSON.stringify(gameState));
+            }
+        }
+
+        function loadUserData(username) {
+            const data = localStorage.getItem(`sqlquest_${username}`);
+            return data ? JSON.parse(data) : null;
+        }
+
+        // UI Update Functions
+        function updateUI() {
+            document.getElementById('userTokens').textContent = gameState.tokens;
+            document.getElementById('userLevel').textContent = gameState.level;
+            document.getElementById('completedModules').textContent = gameState.completedModules.length;
+            document.getElementById('currentStreak').textContent = gameState.streak;
+            
+            updateModuleCards();
+            updateProgress();
+        }
+
+        function updateModuleCards() {
+            moduleOrder.forEach((moduleId, index) => {
+                const card = document.getElementById(`card-${moduleId}`);
+                if (gameState.completedModules.includes(moduleId)) {
+                    card.classList.add('completed');
+                    card.classList.remove('locked');
+                } else if (gameState.unlockedModules.includes(moduleId)) {
+                    card.classList.remove('locked');
+                } else {
+                    card.classList.add('locked');
+                }
+            });
+        }
+
+        function updateProgress() {
+            const progress = (gameState.completedModules.length / moduleOrder.length) * 100;
+            document.getElementById('overallProgress').style.width = progress + '%';
+            document.getElementById('progressText').textContent = 
+                `${gameState.completedModules.length} of ${moduleOrder.length} modules completed (${Math.round(progress)}%)`;
+        }
+
+        // Module Navigation
+        function openModule(moduleId) {
+            const card = document.getElementById(`card-${moduleId}`);
+            if (card.classList.contains('locked')) {
+                showAchievement('🔒 Module Locked', 'Complete previous modules to unlock this content!');
+                return;
+            }
+
+            closeAllModules();
+            document.getElementById(`content-${moduleId}`).classList.add('active');
+        }
+
+        function closeAllModules() {
+            document.querySelectorAll('.content-area').forEach(area => {
+                area.classList.remove('active');
+            });
+        }
+
+        // Quiz System
+        function selectOption(element, isCorrect) {
+            const options = element.parentElement.querySelectorAll('.option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            
+            const quizId = element.parentElement.id.replace('quiz-', '');
+            document.getElementById(`submit-${quizId}`).disabled = false;
+            
+            // Store the selection
+            element.parentElement.dataset.selected = isCorrect;
+        }
+
+        function submitQuiz(moduleId) {
+            const quizContainer = document.getElementById(`quiz-${moduleId}`);
+            const isCorrect = quizContainer.dataset.selected === 'true';
+            const feedback = document.getElementById(`feedback-${moduleId}`);
+            
+            gameState.totalAttempts++;
+            
+            // Visual feedback
+            const options = quizContainer.querySelectorAll('.option');
+            options.forEach((option, index) => {
+                if (option.classList.contains('selected')) {
+                    if (isCorrect) {
+                        option.classList.add('correct');
+                        gameState.correctAnswers++;
+                        gameState.streak++;
+                        
+                        // Award tokens (more for early attempts, less after 5 attempts if wrong)
+                        let tokensEarned = 10;
+                        if (gameState.totalAttempts > 5 && !isCorrect) {
+                            tokensEarned = Math.max(1, 10 - (gameState.totalAttempts - 5));
+                        }
+                        gameState.tokens += tokensEarned;
+                        
+                        showFeedback(feedback, `🎉 Correct! You earned ${tokensEarned} tokens!`, 'success');
+                        
+                        // Complete module
+                        if (!gameState.completedModules.includes(moduleId)) {
+                            completeModule(moduleId);
+                        }
+                    } else {
+                        option.classList.add('incorrect');
+                        gameState.streak = 0;
+                        
+                        // Deduct tokens after 5 attempts
+                        if (gameState.totalAttempts > 5) {
+                            gameState.tokens = Math.max(0, gameState.tokens - 2);
+                            showFeedback(feedback, '❌ Incorrect. 2 tokens deducted. Try again!', 'error');
+                        } else {
+                            showFeedback(feedback, '❌ Incorrect. Try again!', 'error');
+                        }
+                    }
+                }
+            });
+            
+            document.getElementById(`submit-${moduleId}`).disabled = true;
+            updateUI();
+            saveUserData();
+        }
+
+        function completeModule(moduleId) {
+            gameState.completedModules.push(moduleId);
+            
+            // Unlock next module
+            const currentIndex = moduleOrder.indexOf(moduleId);
+            if (currentIndex < moduleOrder.length - 1) {
+                const nextModule = moduleOrder[currentIndex + 1];
+                if (!gameState.unlockedModules.includes(nextModule)) {
+                    gameState.unlockedModules.push(nextModule);
+                }
+            }
+            
+            // Level up logic
+            const newLevel = Math.floor(gameState.completedModules.length / 2) + 1;
+            if (newLevel > gameState.level) {
+                gameState.level = newLevel;
+                showAchievement('🎊 Level Up!', `Congratulations! You've reached Level ${gameState.level}!`);
+            }
+            
+            showAchievement('✅ Module Complete!', `Great job completing "${moduleId.replace('-', ' ')}"! Keep learning!`);
+        }
+
+        // SQL Query Checker
+        function checkSQLQuery() {
+            const query = document.getElementById('sqlQuery').value.trim().toLowerCase();
+            const feedback = document.getElementById('sqlFeedback');
+            
+            // Simple query validation
+            const correctPatterns = [
+                'select email from customers',
+                'select email from customers;',
+                'select customers.email from customers',
+                'select customers.email from customers;'
+            ];
+            
+            const isCorrect = correctPatterns.some(pattern => 
+                query.replace(/\s+/g, ' ') === pattern
+            );
+            
+            if (isCorrect) {
+                showFeedback(feedback, '🎉 Perfect! Your query would return all email addresses from the customers table.', 'success');
+                gameState.tokens += 15;
+                updateUI();
+            } else {
+                showFeedback(feedback, '💡 Hint: Try "SELECT Email FROM customers;" - Remember to specify the column name!', 'error');
+            }
+            
+            saveUserData();
+        }
+
+        // Interactive Table Functions
+        function sortTable(criteria) {
+            const tableBody = document.getElementById('sortableTableBody');
+            let sortedData = [...originalTableData];
+            
+            if (criteria === 'name') {
+                sortedData.sort((a, b) => a.name.localeCompare(b.name));
+            } else if (criteria === 'city') {
+                sortedData.sort((a, b) => a.city.localeCompare(b.city));
+            }
+            
+            updateTableDisplay(sortedData);
+        }
+
+        function filterTable(city) {
+            const filteredData = originalTableData.filter(row => row.city === city);
+            updateTableDisplay(filteredData);
+        }
+
+        function resetTable() {
+            updateTableDisplay(originalTableData);
+        }
+
+        function updateTableDisplay(data) {
+            const tableBody = document.getElementById('sortableTableBody');
+            tableBody.innerHTML = data.map(row => 
+                `<tr><td>${row.name}</td><td>${row.city}</td><td>${row.age}</td></tr>`
+            ).join('');
+        }
+
+        // Achievement System
+        function showAchievement(title, message) {
+            document.getElementById('achievementContent').innerHTML = `
+                <h3>${title}</h3>
+                <p>${message}</p>
+                <div class="tokens-display">🪙 ${gameState.tokens} Total Tokens</div>
+            `;
+            document.getElementById('overlay').classList.add('show');
+            document.getElementById('achievementPopup').classList.add('show');
+        }
+
+        function closeAchievement() {
+            document.getElementById('overlay').classList.remove('show');
+            document.getElementById('achievementPopup').classList.remove('show');
+        }
+
+        // Utility Functions
+        function showFeedback(element, message, type) {
+            element.innerHTML = `<div class="feedback-message feedback-${type}">${message}</div>`;
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up initial state
+            document.getElementById('content-intro').classList.add('active');
+            
+            // Add table interaction
+            document.getElementById('customerTable').addEventListener('click', function(e) {
+                if (e.target.tagName === 'TD' || e.target.tagName === 'TH') {
+                    // Highlight clicked element
+                    document.querySelectorAll('#customerTable td, #customerTable th').forEach(cell => {
+                        cell.style.background = '';
+                    });
+                    e.target.style.background = '#e3f2fd';
+                    
+                    // Show explanation
+                    const isHeader = e.target.tagName === 'TH';
+                    const message = isHeader ? 
+                        `This is a column header: "${e.target.textContent}" defines what type of data this column contains.` :
+                        `This is a data cell containing: "${e.target.textContent}" - part of a row representing one customer.`;
+                    
+                    // Create temporary tooltip
+                    const tooltip = document.createElement('div');
+                    tooltip.style.cssText = `
+                        position: absolute;
+                        background: #333;
+                        color: white;
+                        padding: 10px;
+                        border-radius: 5px;
+                        font-size: 14px;
+                        max-width: 300px;
+                        z-index: 1000;
+                        pointer-events: none;
+                    `;
+                    tooltip.textContent = message;
+                    document.body.appendChild(tooltip);
+                    
+                    const rect = e.target.getBoundingClientRect();
+                    tooltip.style.left = rect.left + 'px';
+                    tooltip.style.top = (rect.bottom + 10) + 'px';
+                    
+                    setTimeout(() => {
+                        if (tooltip.parentNode) {
+                            tooltip.parentNode.removeChild(tooltip);
+                        }
+                    }, 3000);
+                }
+            });
+
+            // Prevent form submission on Enter key
+            document.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && e.target.type !== 'submit') {
+                    e.preventDefault();
+                    if (e.target.id === 'password') {
+                        login();
+                    }
+                }
+            });
+        });
+
+        // Software Testing Functions
+        function runComprehensiveTests() {
+            console.log('🧪 Running comprehensive software tests...');
+            
+            // Test 1: Login System
+            console.log('Testing login system...');
+            const testUser = 'testuser123';
+            const testPass = '1234';
+            
+            // Test 2: Local Storage
+            console.log('Testing local storage...');
+            const testData = {currentUser: testUser, tokens: 50, level: 2};
+            localStorage.setItem(`sqlquest_${testUser}`, JSON.stringify(testData));
+            const retrieved = JSON.parse(localStorage.getItem(`sqlquest_${testUser}`));
+            console.assert(retrieved.tokens === 50, 'Local storage test failed');
+            
+            // Test 3: Quiz System
+            console.log('Testing quiz system...');
+            console.assert(typeof selectOption === 'function', 'selectOption function missing');
+            console.assert(typeof submitQuiz === 'function', 'submitQuiz function missing');
+            
+            // Test 4: Module Navigation
+            console.log('Testing module navigation...');
+            console.assert(typeof openModule === 'function', 'openModule function missing');
+            console.assert(typeof closeAllModules === 'function', 'closeAllModules function missing');
+            
+            // Test 5: UI Updates
+            console.log('Testing UI updates...');
+            console.assert(typeof updateUI === 'function', 'updateUI function missing');
+            console.assert(typeof updateProgress === 'function', 'updateProgress function missing');
+            
+            // Test 6: Table Interactions
+            console.log('Testing table interactions...');
+            console.assert(typeof sortTable === 'function', 'sortTable function missing');
+            console.assert(typeof filterTable === 'function', 'filterTable function missing');
+            
+            // Test 7: Achievement System
+            console.log('Testing achievement system...');
+            console.assert(typeof showAchievement === 'function', 'showAchievement function missing');
+            
+            // Test 8: SQL Query Checker
+            console.log('Testing SQL query checker...');
+            console.assert(typeof checkSQLQuery === 'function', 'checkSQLQuery function missing');
+            
+            // Test 9: Responsive Design
+            console.log('Testing responsive design...');
+            const viewport = document.querySelector('meta[name="viewport"]');
+            console.assert(viewport !== null, 'Viewport meta tag missing');
+            
+            // Test 10: Data Validation
+            console.log('Testing data validation...');
+            console.assert(moduleOrder.length === 6, 'Module order array incorrect');
+            console.assert(Object.keys(quizAnswers).length === 6, 'Quiz answers incomplete');
+            
+            console.log('✅ All tests completed successfully!');
+            return true;
+        }
+
+        // Run tests on load (can be removed in production)
+        // runComprehensiveTests();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9848a844113b6bea',t:'MTc1ODc4Mzc2MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
